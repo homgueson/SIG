@@ -1,0 +1,95 @@
+{
+  "type": "FeatureCollection",
+  "name": "zones_protegees",
+  "crs": {
+    "type": "name",
+    "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [6.6, 44.0], [7.2, 44.0], [7.2, 44.4], [6.6, 44.4], [6.6, 44.0]
+        ]]
+      },
+      "properties": {
+        "nom": "Parc National du Mercantour",
+        "type": "Parc National",
+        "superficie_ha": 68500,
+        "creation": 1979,
+        "faune": "Loup, Lynx, Chamois, Bouquetin",
+        "statut": "Protection intégrale"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [4.1, 43.7], [4.7, 43.7], [4.7, 44.1], [4.1, 44.1], [4.1, 43.7]
+        ]]
+      },
+      "properties": {
+        "nom": "Parc Naturel Régional du Luberon",
+        "type": "Parc Naturel Régional",
+        "superficie_ha": 185000,
+        "creation": 1977,
+        "faune": "Aigle de Bonelli, Castor, Vautour",
+        "statut": "Protection réglementée"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-1.9, 46.5], [-1.2, 46.5], [-1.2, 46.9], [-1.9, 46.9], [-1.9, 46.5]
+        ]]
+      },
+      "properties": {
+        "nom": "Marais Poitevin",
+        "type": "Zone Humide Protégée",
+        "superficie_ha": 100000,
+        "creation": 1996,
+        "faune": "Héron cendré, Cigogne, Loutre",
+        "statut": "Ramsar"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-4.7, 48.0], [-4.0, 48.0], [-4.0, 48.5], [-4.7, 48.5], [-4.7, 48.0]
+        ]]
+      },
+      "properties": {
+        "nom": "Parc Naturel Marin d'Iroise",
+        "type": "Parc Naturel Marin",
+        "superficie_ha": 368000,
+        "creation": 2007,
+        "faune": "Grand Dauphin, Phoque gris, Lamproie",
+        "statut": "Protection marine"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [2.4, 48.3], [3.1, 48.3], [3.1, 48.7], [2.4, 48.7], [2.4, 48.3]
+        ]]
+      },
+      "properties": {
+        "nom": "Forêt de Fontainebleau",
+        "type": "Réserve de Biosphère UNESCO",
+        "superficie_ha": 25000,
+        "creation": 1998,
+        "faune": "Cerf élaphe, Sanglier, Pic noir",
+        "statut": "Réserve de biosphère"
+      }
+    }
+  ]
+}
