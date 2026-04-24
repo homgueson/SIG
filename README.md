@@ -38,7 +38,6 @@ SIG/
 | Technologie | Version | Usage |
 |-------------|---------|-------|
 | [Leaflet.js](https://leafletjs.com/) | 1.9.4 | Moteur de carte interactif |
-| [Leaflet.draw](https://leaflet.github.io/Leaflet.draw/) | 1.0.4 | Outils de dessin et mesure |
 | GeoJSON | RFC 7946 | Format de données géospatiales |
 | HTML5 / CSS3 / JS (ES6+) | — | Interface utilisateur |
 
