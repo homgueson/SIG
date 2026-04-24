@@ -91,10 +91,12 @@ const STYLES = {
 const App = {
     map: null,
     layers: {},
-    drawControl: null,
     drawLayer: null,
     measuring: false,
     measureType: null,
+    measurePoints: [],
+    measureLine: null,
+    measurePolygon: null,
 
     /* ------ Initialisation --------------------------------- */
     init() {
@@ -385,7 +387,7 @@ const App = {
         });
     },
 
-    /* ------ Mesures --------------------------------------- */
+    /* ------ Mesures (implémentation native Leaflet) -------- */
     startMeasure(type) {
         if (this.measuring) {
             this.stopMeasure();
@@ -394,73 +396,118 @@ const App = {
 
         this.measuring = true;
         this.measureType = type;
+        this.measurePoints = [];
 
         const btnId = type === 'polyline' ? 'btn-measure-distance' : 'btn-measure-area';
         document.getElementById(btnId).classList.add('active');
         document.getElementById('measure-result').classList.add('hidden');
-        this.setStatus('Cliquez sur la carte pour dessiner. Double-clic pour terminer.');
+        this.setStatus('Cliquez sur la carte pour placer des points. Double-clic pour terminer.');
 
-        const options = {
-            edit: { featureGroup: this.drawLayer }
-        };
+        // Change cursor to crosshair
+        this.map.getContainer().style.cursor = 'crosshair';
 
-        const DrawClass = type === 'polyline'
-            ? L.Draw.Polyline
-            : L.Draw.Polygon;
+        // Disable map interactions that would conflict
+        this.map.doubleClickZoom.disable();
 
-        this.currentDraw = new DrawClass(this.map, {
-            shapeOptions: {
+        this._measureClickHandler = (e) => this._onMeasureClick(e);
+        this._measureDblClickHandler = (e) => this._onMeasureDblClick(e);
+
+        this.map.on('click', this._measureClickHandler);
+        this.map.on('dblclick', this._measureDblClickHandler);
+    },
+
+    _onMeasureClick(e) {
+        this.measurePoints.push(e.latlng);
+        this._updateMeasureDrawing();
+    },
+
+    _onMeasureDblClick(e) {
+        // Remove last duplicate point added by the preceding click event
+        if (this.measurePoints.length > 0) {
+            this.measurePoints.pop();
+        }
+        this.measurePoints.push(e.latlng);
+        this._updateMeasureDrawing();
+        this._finalizeMeasure();
+    },
+
+    _updateMeasureDrawing() {
+        // Clear previous drawing
+        this.drawLayer.clearLayers();
+        this.measureLine = null;
+        this.measurePolygon = null;
+
+        const pts = this.measurePoints;
+        if (pts.length < 1) return;
+
+        const style = { color: '#e74c3c', weight: 3, opacity: 0.85 };
+
+        if (this.measureType === 'polyline' && pts.length >= 2) {
+            this.measureLine = L.polyline(pts, style).addTo(this.drawLayer);
+        } else if (this.measureType === 'polygon' && pts.length >= 3) {
+            this.measurePolygon = L.polygon(pts, {
+                ...style,
+                fillColor: '#e74c3c',
+                fillOpacity: 0.15
+            }).addTo(this.drawLayer);
+        }
+
+        // Draw vertex markers
+        pts.forEach(pt => {
+            L.circleMarker(pt, {
+                radius: 5,
                 color: '#e74c3c',
-                weight: 3
-            },
-            showLength: true,
-            metric: true,
-            tooltip: {
-                start: 'Cliquez pour commencer',
-                cont: 'Cliquez pour continuer',
-                end: 'Double-clic pour terminer'
-            }
+                fillColor: 'white',
+                fillOpacity: 1,
+                weight: 2
+            }).addTo(this.drawLayer);
         });
-        this.currentDraw.enable();
+    },
 
-        this.map.once(L.Draw.Event.CREATED, (e) => {
-            this.drawLayer.clearLayers();
-            this.drawLayer.addLayer(e.layer);
-            const result = this.computeMeasure(e.layer, type);
+    _finalizeMeasure() {
+        const pts = this.measurePoints;
+        let result = '';
+
+        if (this.measureType === 'polyline' && pts.length >= 2) {
+            let total = 0;
+            for (let i = 0; i < pts.length - 1; i++) {
+                total += pts[i].distanceTo(pts[i + 1]);
+            }
+            result = total >= 1000
+                ? (total / 1000).toFixed(2) + ' km'
+                : total.toFixed(0) + ' m';
+        } else if (this.measureType === 'polygon' && pts.length >= 3) {
+            const area = this.computePolygonArea(pts);
+            result = area >= 1000000
+                ? (area / 1000000).toFixed(2) + ' km²'
+                : area.toFixed(0) + ' m²';
+        }
+
+        if (result) {
             document.getElementById('measure-value').textContent = result;
             document.getElementById('measure-result').classList.remove('hidden');
-            this.stopMeasure();
-        });
+        }
+
+        this.stopMeasure();
     },
 
     stopMeasure() {
         this.measuring = false;
-        if (this.currentDraw) {
-            this.currentDraw.disable();
-            this.currentDraw = null;
+        this.measurePoints = [];
+        this.map.getContainer().style.cursor = '';
+        this.map.doubleClickZoom.enable();
+
+        if (this._measureClickHandler) {
+            this.map.off('click', this._measureClickHandler);
+            this._measureClickHandler = null;
         }
+        if (this._measureDblClickHandler) {
+            this.map.off('dblclick', this._measureDblClickHandler);
+            this._measureDblClickHandler = null;
+        }
+
         document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
         this.setStatus('Mesure terminée');
-    },
-
-    computeMeasure(layer, type) {
-        if (type === 'polyline') {
-            const latlngs = layer.getLatLngs();
-            let total = 0;
-            for (let i = 0; i < latlngs.length - 1; i++) {
-                total += latlngs[i].distanceTo(latlngs[i + 1]);
-            }
-            return total >= 1000
-                ? (total / 1000).toFixed(2) + ' km'
-                : total.toFixed(0) + ' m';
-        } else {
-            const area = L.GeometryUtil
-                ? L.GeometryUtil.geodesicArea(layer.getLatLngs()[0])
-                : this.computePolygonArea(layer.getLatLngs()[0]);
-            return area >= 1000000
-                ? (area / 1000000).toFixed(2) + ' km²'
-                : area.toFixed(0) + ' m²';
-        }
     },
 
     computePolygonArea(latlngs) {
