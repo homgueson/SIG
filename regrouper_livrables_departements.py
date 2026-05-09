@@ -95,9 +95,9 @@ def _count_ext(folder_path: str, ext: str, recursive: bool = False) -> int:
 
 def verify_zs_content(zs_dir: str) -> Dict[str, object]:
     """
-    Verifie une structure ZS et retourne une version corrigee utilisable:
+    Vérifie une structure ZS et retourne une version corrigée utilisable:
     - garde uniquement les ZC valides (Json_ZC, Json_ZD, Mbtiles_ZD non vides)
-    - exige au moins un JSON ZS a la racine
+    - exige au moins un JSON ZS à la racine
     """
     zs_name = os.path.basename(zs_dir)
     anomalies: List[str] = []
@@ -109,7 +109,7 @@ def verify_zs_content(zs_dir: str) -> Dict[str, object]:
         if os.path.isfile(os.path.join(zs_dir, name)) and name.lower().endswith(".json")
     ]
     if not zs_json_files:
-        anomalies.append(f"{zs_name}: aucun JSON ZS a la racine")
+        anomalies.append(f"{zs_name}: aucun JSON ZS à la racine")
 
     zc_dirs = list_zc_dirs(zs_dir)
     if not zc_dirs:
@@ -199,9 +199,9 @@ def extract_zs_digits(zs_code: str) -> str:
 
 def extract_dept_code_from_zs(zs_code: str) -> Optional[str]:
     """
-    Regle demandee:
-      ZS080201 -> digits apres prefixe ZS = 080201
-      code departement = les 2 chiffres apres les 2 premiers = "02"
+    Règle demandée:
+      ZS080201 -> digits après préfixe ZS = 080201
+      code département = les 2 chiffres après les 2 premiers = "02"
     """
     digits = extract_zs_digits(zs_code)
     if len(digits) < 4:
@@ -264,7 +264,7 @@ def load_dept_name_by_zs_seq(
     - dict {zs_seq_int: nom_dept}
       ou zs_seq_int = valeur entiere du champ ZS dans ZC
       (correspond aux 2 derniers chiffres du nom de dossier ZS, ex: ZS080107 -> 7)
-    - metadata champs utilises
+    - metadata champs utilisés
     """
     if arcpy is None:
         raise RuntimeError("ArcPy indisponible. Utiliser l'environnement arcgispro-gdal.")
@@ -434,8 +434,8 @@ def parse_args() -> argparse.Namespace:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--source-dir", required=True, help="Dossier source contenant les dossiers ZS* (ex: Livrables_ZS_Province)")
-    parser.add_argument("--zc-fc", required=True, help="Couche ZC (feature class) pour recuperer le nom du departement")
-    parser.add_argument("--out-dir", default=None, help="Dossier de sortie. Defaut: <parent-source>/Livrables_Departements")
+    parser.add_argument("--zc-fc", required=True, help="Couche ZC (feature class) pour récupérer le nom du département")
+    parser.add_argument("--out-dir", default=None, help="Dossier de sortie. Défaut: <parent-source>/Livrables_Departements")
     parser.add_argument("--zs-field", default="ZS", help="Champ ZS dans la couche ZC")
     parser.add_argument("--dept-name-field", default=None, help="Champ nom departement dans ZC (optionnel, auto-detection sinon)")
     parser.add_argument("--clean-out-dir", action="store_true", help="Supprime le contenu du dossier de sortie avant copie")
@@ -466,17 +466,17 @@ def main() -> None:
         clear_directory(out_dir)
         ensure_dir(out_dir)
 
-    log("Lecture de la couche ZC pour construire le referentiel departements")
+    log("Lecture de la couche ZC pour construire le référentiel départements")
     zs_seq_to_name, fields_meta = load_dept_name_by_zs_seq(
         zc_fc=args.zc_fc,
         zc_zs_field_hint=args.zs_field,
         dept_name_field=args.dept_name_field,
     )
-    log(f"ZS sequences indexees depuis ZC: {len(zs_seq_to_name)}")
+    log(f"ZS séquences indexées depuis ZC: {len(zs_seq_to_name)}")
 
     zs_dirs = list_zs_dirs(source_dir)
     if not zs_dirs:
-        raise RuntimeError("Aucun dossier ZS* trouve dans source-dir")
+        raise RuntimeError("Aucun dossier ZS* trouvé dans source-dir")
 
     recap = {
         "source_dir": source_dir,
@@ -519,15 +519,15 @@ def main() -> None:
 
         if verification["has_blocking_issue"]:
             recap["summary"]["zs_skipped"] += 1
-            log(f"ZS ignoree (anomalie bloquante): {zs_name}", "WARNING")
+            log(f"ZS ignorée (anomalie bloquante): {zs_name}", "WARNING")
             continue
 
         dept_code = extract_dept_code_from_zs(zs_name)
         if not dept_code:
-            log(f"ZS ignoree (code dept non extractible): {zs_name}", "WARNING")
+            log(f"ZS ignorée (code dept non extractible): {zs_name}", "WARNING")
             continue
 
-        # Recuperer Nom_DEP via la sequence ZS (derniers chiffres du dossier ZS)
+        # Récupérer Nom_DEP via la séquence ZS (derniers chiffres du dossier ZS)
         zs_digits = extract_zs_digits(zs_name)  # ex: '080107' depuis 'ZS080107'
         zs_seq_int = int(zs_digits[-2:]) if len(zs_digits) >= 2 else None
         dept_name = (
@@ -588,7 +588,7 @@ def main() -> None:
 
                 if copied_excel or skipped_excel:
                     log(
-                        f"{zs_name}/{zc_name} -> excels communes copies={copied_excel} ignores={skipped_excel}"
+                        f"{zs_name}/{zc_name} -> excels communes copies={copied_excel} ignorés={skipped_excel}"
                     )
 
         dept_entry["zs_names"].append(zs_name)
@@ -628,10 +628,10 @@ def main() -> None:
     with open(txt_path, "w", encoding="utf-8") as stream:
         stream.write(build_text_report(recap))
 
-    log(f"Recap JSON ecrit: {json_path}")
-    log(f"Recap TXT ecrit: {txt_path}")
+    log(f"Recap JSON écrit: {json_path}")
+    log(f"Recap TXT écrit: {txt_path}")
     log(
-        "Termine - "
+        "Terminé - "
         f"departements={recap['summary']['dept_count']} | "
         f"zs={recap['summary']['zs_count']} | "
         f"copies={recap['summary']['files_copied']} | "
